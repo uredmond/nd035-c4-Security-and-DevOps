@@ -76,6 +76,16 @@ public class CartControllerTest {
     }
 
     @Test
+    public void addToCart_exceptionThrown_returnsInternalServerError() {
+        ModifyCartRequest request = createRequest(username, itemId, 1);
+        doThrow(new RuntimeException()).when(userRepository).findByUsername(username);
+
+        ResponseEntity<Cart> response = cartController.addToCart(request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void removeFromCart_userNotFound_returnsNotFound() {
         ModifyCartRequest request = createRequest("username", 1L, 1);
 
@@ -101,6 +111,16 @@ public class CartControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(cartRepository, times(1)).save(any());
+    }
+
+    @Test
+    public void removeFromCart_exceptionThrown_returnsInternalServerError() {
+        ModifyCartRequest request = createRequest(username, itemId, 1);
+        doThrow(new RuntimeException()).when(userRepository).findByUsername(username);
+
+        ResponseEntity<Cart> response = cartController.removeFromCart(request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     private User createUser() {

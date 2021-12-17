@@ -54,6 +54,15 @@ public class UserControllerTest {
     }
 
     @Test
+    public void findById_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(userRepository).findById(userId);
+
+        ResponseEntity<User> response = userController.findById(userId);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void findByUserName_userNotFound_returnsNotFound() {
         ResponseEntity<User> response = userController.findByUserName("name");
 
@@ -65,6 +74,15 @@ public class UserControllerTest {
         ResponseEntity<User> response = userController.findByUserName(username);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void findByUserName_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(userRepository).findByUsername(username);
+
+        ResponseEntity<User> response = userController.findByUserName(username);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test
@@ -93,6 +111,17 @@ public class UserControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(userRepository, times(1)).save(any());
+    }
+
+    @Test
+    public void createUser_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(cartRepository).save(any());
+
+        CreateUserRequest request = createUserRequest("thisIsLongEnough", "thisIsLongEnough");
+
+        ResponseEntity<User> response = userController.createUser(request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     private User createTestUser() {

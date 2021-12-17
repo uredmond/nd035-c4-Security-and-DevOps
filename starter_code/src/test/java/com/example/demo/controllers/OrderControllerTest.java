@@ -57,6 +57,15 @@ public class OrderControllerTest {
     }
 
     @Test
+    public void submit_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(userRepository).findByUsername(username);
+
+        ResponseEntity<UserOrder> response = orderController.submit(username);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void getOrdersForUser_userNotFound_returnsNotFound() {
         ResponseEntity<List<UserOrder>> response = orderController.getOrdersForUser("name");
 
@@ -68,6 +77,15 @@ public class OrderControllerTest {
         ResponseEntity<List<UserOrder>> response = orderController.getOrdersForUser(username);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void getOrdersForUser_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(userRepository).findByUsername(username);
+
+        ResponseEntity<List<UserOrder>> response = orderController.getOrdersForUser(username);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     private User createUser() {

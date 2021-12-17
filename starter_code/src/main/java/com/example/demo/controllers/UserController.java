@@ -1,7 +1,5 @@
 package com.example.demo.controllers;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,37 +34,52 @@ public class UserController {
 
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
-		log.info("Searching for user by id {}", id);
-		return ResponseEntity.of(userRepository.findById(id));
+		try {
+			log.info("Searching for user by id {}", id);
+			return ResponseEntity.of(userRepository.findById(id));
+		} catch (Exception e) {
+			log.error("Error finding user by id: ", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 	
 	@GetMapping("/{username}")
 	public ResponseEntity<User> findByUserName(@PathVariable String username) {
-		User user = userRepository.findByUsername(username);
-		if (user == null) {
-			log.error("User not found with name {}", username);
-			return ResponseEntity.notFound().build();
+		try {
+			User user = userRepository.findByUsername(username);
+			if (user == null) {
+				log.error("User not found with name {}", username);
+				return ResponseEntity.notFound().build();
+			}
+			log.info("User found with name {}", username);
+			return ResponseEntity.ok(user);
+		} catch (Exception e) {
+			log.error("Error finding user by name: ", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
-		log.info("User found with name {}", username);
-		return ResponseEntity.ok(user);
 	}
 	
 	@PostMapping("/create")
 	public ResponseEntity<User> createUser(@RequestBody CreateUserRequest createUserRequest) {
-		User user = new User();
-		user.setUsername(createUserRequest.getUsername());
-		Cart cart = new Cart();
-		cartRepository.save(cart);
-		user.setCart(cart);
-		if (createUserRequest.getPassword().length() < 7 ||
-		!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
-			log.error("Error with user password. Cannot create user {}", createUserRequest.getUsername());
-			return ResponseEntity.badRequest().build();
+		try {
+			User user = new User();
+			user.setUsername(createUserRequest.getUsername());
+			Cart cart = new Cart();
+			cartRepository.save(cart);
+			user.setCart(cart);
+			if (createUserRequest.getPassword().length() < 7 ||
+					!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
+				log.error("Error with user password. Cannot create user {}", createUserRequest.getUsername());
+				return ResponseEntity.badRequest().build();
+			}
+			user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
+			userRepository.save(user);
+			log.info("Saved new user {}", createUserRequest.getUsername());
+			return ResponseEntity.ok(user);
+		} catch (Exception e) {
+			log.error("Error creating user: ", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
-		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
-		userRepository.save(user);
-		log.info("Saved new user {}", createUserRequest.getUsername());
-		return ResponseEntity.ok(user);
 	}
 	
 }

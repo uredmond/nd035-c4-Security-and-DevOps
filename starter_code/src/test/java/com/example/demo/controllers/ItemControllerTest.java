@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 public class ItemControllerTest {
@@ -49,10 +50,28 @@ public class ItemControllerTest {
     }
 
     @Test
+    public void getItems_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(itemRepository).findAll();
+
+        ResponseEntity<List<Item>> response = itemController.getItems();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void getItemById_returnsOk() {
         ResponseEntity<Item> response = itemController.getItemById(itemId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void getItemById_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(itemRepository).findById(itemId);
+
+        ResponseEntity<Item> response = itemController.getItemById(itemId);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test
@@ -67,6 +86,15 @@ public class ItemControllerTest {
         ResponseEntity<List<Item>> response = itemController.getItemsByName(itemName);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void getItemsByName_exceptionThrown_returnsInternalServerError() {
+        doThrow(new RuntimeException()).when(itemRepository).findByName(itemName);
+
+        ResponseEntity<List<Item>> response = itemController.getItemsByName(itemName);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     private Item createItem() {
